@@ -66,13 +66,13 @@ class FileManager {
   decompress() {}
 
   os(arg) {
-    if (!arg || !arg.trim().length) {
+    if (!arg) {
       return console.error('No arguments')
     }
 
-    const ARG_PREFIX = '--'
+    const ARG_NO_PREF = arg.slice(2)
 
-    switch (arg.slice(ARG_PREFIX.length).toLowerCase()) {
+    switch (ARG_NO_PREF.toLowerCase()) {
       case 'eol':
         return console.log(this._os.eol)
       case 'cpus':
