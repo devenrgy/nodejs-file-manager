@@ -11,11 +11,15 @@ class OS {
   }
 
   get eol() {
-    return JSON.stringify(EOL)
+    return EOL
   }
 
   get homedir() {
     return userInfo().homedir
+  }
+
+  get currentDir() {
+    return process.cwd()
   }
 
   get architecture() {
