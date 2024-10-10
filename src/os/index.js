@@ -1,8 +1,10 @@
-import { userInfo, EOL, cpus as _cpus } from 'node:os'
+import { userInfo, availableParallelism, EOL, cpus as _cpus } from 'node:os'
+import { formatTime } from '#utils'
 
 class OS {
   constructor() {
-    this.systemUsername = userInfo().username
+    this.info = userInfo()
+    this.systemUsername = this.info.username
     this._username = this.systemUsername.charAt(0).toUpperCase() + this.systemUsername.slice(1)
   }
 
@@ -15,7 +17,12 @@ class OS {
   }
 
   get homedir() {
-    return userInfo().homedir
+    return this.info.homedir
+  }
+
+  get time() {
+    const date = new Date()
+    return [date.getHours(), date.getMinutes(), date.getSeconds()].map(formatTime).join(':')
   }
 
   get currentDir() {
@@ -26,8 +33,12 @@ class OS {
     return process.arch
   }
 
+  get totalCpus() {
+    return availableParallelism()
+  }
+
   get cpus() {
-    return _cpus().map(({ model, speed }) => ({ model, speed }))
+    return _cpus().map(({ model, speed }) => ({ Model: model, 'Clock Rate': speed / 1000 + 'GHz' }))
   }
 }
 

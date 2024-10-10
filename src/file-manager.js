@@ -1,9 +1,14 @@
-import { pipeline } from 'node:stream/promises'
 import { createInterface } from 'node:readline/promises'
 
 import { OS } from './os/index.js'
 import { CLI } from './cli/index.js'
 import { FS } from './fs/index.js'
+import { Zip } from './zip/index.js'
+
+import { MAN_OS, MAN_COMMANDS } from '#mans'
+import { isFunction } from '#utils'
+import { CMD_EXIT, CMD_HELP, CMD_UP } from '#constants'
+import { LOGO } from '#logo'
 
 class FileManager {
   _os = new OS()
@@ -11,7 +16,7 @@ class FileManager {
   _fs = new FS()
   // hash = new Hash()
   // nav = new Nav()
-  // zip = new Zip()
+  _zip = new Zip()
   // err = new CustomError()
 
   _setupInputListener() {
@@ -22,32 +27,37 @@ class FileManager {
 
     this.rl.on('close', () => this.exit())
 
-    //TODO: FIX return many this._setPrompt
     this.rl.on('line', async (data) => {
-      const [methodName, ...args] = data.trim().split(' ')
+      const [cmd, ...args] = data.trim().split(' ')
 
-      if (!methodName) {
+      if (!cmd) {
         return this._setPrompt()
       }
 
-      if (methodName.startsWith('_')) {
-        console.error(`Command '${methodName}' not found!`)
+      if (cmd.startsWith('_')) {
+        console.error(`Command '${cmd}' not found!`)
         return this._setPrompt()
       }
 
-      if (methodName === '..') {
-        this.cd(methodName)
+      if (CMD_UP.includes(cmd)) {
+        this.cd('..')
         return this._setPrompt()
       }
 
-      if (['.q', '.quit', '.exit'].includes(methodName)) {
+      if (CMD_HELP.includes(cmd)) {
+        this.help()
+        return this._setPrompt()
+      }
+
+      if (CMD_EXIT.includes(cmd)) {
         this.exit()
       }
 
-      if (typeof this[methodName] === 'function') {
-        await this[methodName](...args)
+      if (isFunction(this[cmd])) {
+        //TODO: think about this method
+        await this[cmd](...args.join(' ').trim().split(' '))
       } else {
-        console.error(`Command '${methodName}' not found!`)
+        console.error(`Command '${cmd}' not found!`)
       }
 
       this._setPrompt()
@@ -55,7 +65,7 @@ class FileManager {
   }
 
   _setPrompt() {
-    this.rl.setPrompt(this._os.eol + this._os.currentDir + this._os.eol + '❯ ')
+    this.rl.setPrompt(this._os.eol + '┌──────' + this._os.currentDir + this._os.eol + `└──[ ${this._os.time} ] ➜ `)
     this.rl.prompt()
   }
 
@@ -71,21 +81,31 @@ class FileManager {
 
   _init() {
     this.clear()
-    this._setupLogin()
-    console.log(`Welcome to the File Manager, ${this.username}!`)
 
+    console.log(LOGO)
+
+    this._setupLogin()
+    this._welcome()
     this._setupInputListener()
     this._setPrompt()
   }
 
+  _welcome() {
+    console.log(`Welcome to the File Manager, ${this.username}!`)
+    console.log('To get started, you can type help or --help, -h after any command to learn more about its usage.')
+    console.log(
+      'You can also use the help command in conjunction with other commands. For example: "help os" will display the available arguments.',
+    )
+  }
+
   // TODO: add .catch and console.error
   async ls() {
-    console.table(await this._fs.list(this._os.currentDir))
+    console.table(await this._fs.list('asc'))
   }
 
   // TODO: add .catch and console.error
   async cp(oldDir, newDir) {
-    await this._fs.cp(`${this._os.currentDir}/${oldDir}`, `${this._os.currentDir}/${newDir}`)
+    await this._fs.cp(oldDir, newDir)
     console.log('Copying successfully completed')
   }
   rm() {}
@@ -101,11 +121,29 @@ class FileManager {
     console.clear()
   }
 
+  help(command) {
+    switch (command) {
+      case 'os':
+        console.table(MAN_OS)
+        break
+      default:
+        console.table(MAN_COMMANDS)
+    }
+  }
+
   hash() {}
 
-  compress() {}
-  decompress() {}
+  async compress(file_path, archive_path) {
+    await this._zip.compress(file_path, archive_path)
+    console.log('The compression was successful!')
+  }
 
+  async decompress(archive_path, file_path) {
+    await this._zip.decompress(archive_path, file_path)
+    console.log('The decompression was successful!')
+  }
+
+  //TODO: ADD MULTI RUN COMMAND
   os(arg) {
     if (!arg) {
       return console.error('No arguments')
@@ -117,7 +155,8 @@ class FileManager {
       case 'eol':
         return console.log(JSON.stringify(this._os.eol))
       case 'cpus':
-        return console.table(this._os.cpus)
+        console.table(this._os.cpus)
+        return console.log(`Total Cores: ${this._os.totalCpus}`)
       case 'homedir':
         return console.log(this._os.homedir)
       case 'username':
