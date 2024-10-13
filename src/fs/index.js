@@ -1,44 +1,67 @@
-import { readdir, cp } from 'node:fs/promises'
-import path from 'node:path'
+import { cp, rm, access, mkdir, constants } from 'node:fs/promises'
+import { createReadStream, createWriteStream } from 'node:fs'
+import { cwd } from 'node:process'
+import { join, dirname } from 'node:path'
+import { toBool } from '#utils'
 
 class FS {
-  constructor() {}
+  async isExists(path) {
+    return access(join(cwd(), path), constants.F_OK).then(...toBool)
+  }
 
-  async list(sort) {
-    switch (sort) {
-      case 'asc':
-        return readdir(process.cwd(), { encoding: 'utf-8', withFileTypes: true }).then((data) =>
-          data
-            .map((file, index) => ({
-              Name: file.name,
-              Type: file.isDirectory() ? 'directory' : 'file',
-            }))
-            .sort((a, b) => (a.Type === b.Type ? a.Name.localeCompare(b.Name) : a.Type.localeCompare(b.Type))),
-        )
-      case 'desc':
-        return readdir(dir, { encoding: 'utf-8', withFileTypes: true }).then((data) =>
-          data
-            .map((file, index) => ({
-              Name: file.name,
-              Type: file.isDirectory() ? 'directory' : 'file',
-            }))
-            .sort((a, b) => (a.Type === b.Type ? b.Name.localeCompare(a.Name) : b.Type.localeCompare(a.Type))),
-        )
-      default:
-        return readdir(dir, { encoding: 'utf-8' })
+  async mkdir(dir) {
+    if (!(await this.isExists(dirname(dir)))) {
+      await mkdir(join(cwd(), dirname(dir)))
     }
   }
 
   async cp(oldDir, newDir) {
-    return cp(path.join(process.cwd(), oldDir), path.join(process.cwd(), newDir), {
-      recursive: true,
-      errorOnExist: true,
-      force: false,
+    await this.mkdir(newDir)
+
+    return new Promise((res, rej) => {
+      const readStream = createReadStream(join(cwd(), oldDir), { encoding: 'utf-8' })
+      const writeStream = createWriteStream(join(cwd(), newDir), { encoding: 'utf-8' })
+      readStream.pipe(writeStream)
+
+      readStream.on('error', (err) => rej(err))
+      writeStream.on('error', (err) => rej(err))
+
+      writeStream.on('close', () => res())
     })
   }
 
-  cd(newDir) {
-    process.chdir(newDir)
+  async rm(file_path) {
+    return rm(file_path, { recursive: true, force: true })
+  }
+
+  async mv(oldDir, newDir) {
+    await this.cp(oldDir, newDir)
+    return this.rm(oldDir)
+  }
+
+  async touch(file_path, content = '') {
+    await this.mkdir(file_path)
+
+    return new Promise((res, rej) => {
+      const writeStream = createWriteStream(join(cwd(), file_path), { encoding: 'utf-8', flags: 'wx' })
+
+      writeStream.write(content, (err) => (err ? rej(err) : res()))
+
+      writeStream.on('error', (err) => rej(err))
+    })
+  }
+
+  async cat(file_path) {
+    return new Promise((res, rej) => {
+      const readStream = createReadStream(join(cwd(), file_path), { encoding: 'utf-8' })
+      let data = ''
+
+      readStream.on('data', (chunk) => (data += chunk))
+
+      readStream.on('end', () => res(data))
+
+      readStream.on('error', (err) => rej(err))
+    })
   }
 }
 

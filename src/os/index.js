@@ -1,4 +1,5 @@
 import { userInfo, availableParallelism, EOL, cpus as _cpus } from 'node:os'
+import { cwd, arch } from 'node:process'
 import { formatTime } from '#utils'
 
 class OS {
@@ -26,11 +27,11 @@ class OS {
   }
 
   get currentDir() {
-    return process.cwd()
+    return cwd()
   }
 
   get architecture() {
-    return process.arch
+    return arch
   }
 
   get totalCpus() {

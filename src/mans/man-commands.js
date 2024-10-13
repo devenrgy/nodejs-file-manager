@@ -24,6 +24,10 @@ const MAN_COMMANDS = [
     Description: 'Create an empty file or update its timestamp',
   },
   {
+    Command: 'mv',
+    Description: 'Moves or renames files and directories',
+  },
+  {
     Command: 'cat',
     Description: 'Display the content of a file',
   },
@@ -52,7 +56,7 @@ const MAN_COMMANDS = [
     Description: 'Display operating system information',
   },
   {
-    Command: 'exit',
+    Command: 'quit',
     Description: 'Exit the CLI file manager',
   },
   {

@@ -1,8 +1,10 @@
+import { argv } from 'node:process'
+
 class CLI {
   parseArg(name) {
     if (name) {
       try {
-        return process.argv.findLast((arg) => arg.startsWith(name)).split('=')[1]
+        return argv.findLast((arg) => arg.startsWith(name)).split('=')[1]
       } catch (err) {
         throw new Error(`${name} argument not found! Please use the correct ${name} argument!`)
       }
@@ -10,7 +12,7 @@ class CLI {
   }
 
   parseArgs() {
-    return process.argv.reduce((prev, curr) => {
+    return argv.reduce((prev, curr) => {
       if (new RegExp(/^--\w/).test(curr)) {
         const [arg, value] = curr.split('=')
         prev[arg.slice(PREFIX.length)] = value

@@ -1,7 +1,8 @@
 import { createWriteStream, createReadStream } from 'node:fs'
 import { pipeline } from 'node:stream/promises'
-import { createGzip, createGunzip } from 'node:zlib'
-import path from 'node:path'
+import { createBrotliCompress, createBrotliDecompress } from 'node:zlib'
+import { join } from 'node:path'
+import { cwd } from 'node:process'
 
 class Zip {
   async compress(file_path, archive_path) {
@@ -9,23 +10,23 @@ class Zip {
     //   file_path += '.txt'
     // }
 
-    //TODO: add folder zip and catch error and check folder or file
-    if (archive_path.slice(-3) !== '.gz') {
-      archive_path += '.gz'
-    }
+    ////TODO: add folder zip and catch error and check folder or file
+    //if (archive_path.slice(-3) !== '.gz') {
+    //  archive_path += '.gz'
+    //}
 
     return pipeline(
-      createReadStream(path.join(process.cwd(), file_path), { encoding: 'utf-8' }),
-      createGzip(),
-      createWriteStream(path.join(process.cwd(), archive_path), { encoding: 'utf-8' }),
+      createReadStream(join(cwd(), file_path), { encoding: 'utf-8' }),
+      createBrotliCompress(),
+      createWriteStream(join(cwd(), archive_path), { encoding: 'utf-8' }),
     )
   }
 
   async decompress(archive_path, file_path) {
     return pipeline(
-      createReadStream(path.join(process.cwd(), archive_path)),
-      createGunzip(),
-      createWriteStream(path.join(process.cwd(), file_path)),
+      createReadStream(join(cwd(), archive_path)),
+      createBrotliDecompress(),
+      createWriteStream(join(cwd(), file_path)),
     )
   }
 }

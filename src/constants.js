@@ -4,4 +4,8 @@ const CMD_EXIT = ['.q', '.quit', '.exit']
 
 const CMD_UP = ['..', 'up']
 
-export { CMD_UP, CMD_EXIT, CMD_HELP }
+const CMD_RENAME = ['rn']
+
+const CMD_CREATE = ['add']
+
+export { CMD_UP, CMD_CREATE, CMD_EXIT, CMD_RENAME, CMD_HELP }
