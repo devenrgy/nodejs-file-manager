@@ -1,13 +1,25 @@
 {
   "name": "nodejs-file-manager",
   "version": "1.0.0",
-  "description": "",
+  "description": "A lightweight and customizable CLI file manager for efficient file navigation and operations in the terminal, built with Node.js.",
   "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "main": "main.js",
+  "imports": {
+    "#utils/*": "./src/utils/*",
+    "#mans": "./src/mans/index.js",
+    "#modules": "./src/modules/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "keywords": [
+    "cli",
+    "file manager"
+  ],
+  "author": "devenrgy",
+  "url": "https://github.com/devenrgy",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.7.4"
+  }
 }
