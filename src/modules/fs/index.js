@@ -2,9 +2,9 @@ import { cp, rm, access, mkdir, constants } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { cwd } from 'node:process'
 import { join, dirname, isAbsolute } from 'node:path'
-import { toBool } from '#utils'
+import { toBool } from '#utils/helpers.js'
 
-class FS {
+class Fs {
   resolvePath(path, to) {
     switch (to) {
       case 'dir':
@@ -107,4 +107,4 @@ class FS {
   }
 }
 
-export { FS }
+export { Fs }

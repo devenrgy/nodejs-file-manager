@@ -1,6 +1,6 @@
 import { argv } from 'node:process'
 
-class CLI {
+class Cli {
   parseArg(name) {
     if (name) {
       try {
@@ -23,4 +23,4 @@ class CLI {
   }
 }
 
-export { CLI }
+export { Cli }

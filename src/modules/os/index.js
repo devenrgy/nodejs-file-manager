@@ -1,8 +1,8 @@
 import { userInfo, availableParallelism, EOL, cpus as _cpus } from 'node:os'
 import { cwd, arch } from 'node:process'
-import { formatTime } from '#utils'
+import { formatTime } from '#utils/helpers.js'
 
-class OS {
+class Os {
   constructor() {
     this.info = userInfo()
     this.systemUsername = this.info.username
@@ -43,4 +43,4 @@ class OS {
   }
 }
 
-export { OS }
+export { Os }

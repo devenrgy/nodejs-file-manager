@@ -1,22 +1,16 @@
 import { createInterface } from 'node:readline/promises'
 import { stdin, stdout, cwd, exit } from 'node:process'
 
-import { OS } from './os/index.js'
-import { CLI } from './cli/index.js'
-import { FS } from './fs/index.js'
-import { Nav } from './nav/index.js'
-import { Zip } from './zip/index.js'
-import { Hash } from './hash/index.js'
-
+import { Os, Cli, Fs, Nav, Zip, Hash } from '#modules'
 import { MAN_OS, MAN_COMMANDS } from '#mans'
-import { isFunction, handleErrors } from '#utils'
-import { CMD_EXIT, CMD_CREATE, CMD_RENAME, CMD_HELP, CMD_UP } from '#constants'
-import { LOGO } from '#logo'
+import { isFunction, handleErrors } from '#utils/helpers.js'
+import { CMD_EXIT, CMD_CREATE, CMD_RENAME, CMD_HELP, CMD_UP } from '#utils/constants.js'
+import { LOGO } from '#utils/logo.js'
 
 class FileManager {
-  _os = new OS()
-  _cli = new CLI()
-  _fs = new FS()
+  _os = new Os()
+  _cli = new Cli()
+  _fs = new Fs()
   _hash = new Hash()
   _nav = new Nav()
   _zip = new Zip()
@@ -67,9 +61,7 @@ class FileManager {
       }
 
       if (isFunction(this[cmd])) {
-        //TODO: think about this method
-        //.join(' ').trim().split(' ')
-        await this[cmd](...args)
+        await this[cmd](...args.filter((arg) => arg.trim() !== ''))
       } else {
         console.error(`Command '${cmd}' not found!`)
       }
@@ -163,13 +155,16 @@ class FileManager {
     console.clear()
   }
 
-  //TODO: ADD MULTI RUN COMMAND
-  os(arg) {
-    if (!arg) {
+  os(...arg) {
+    if (!arg.length) {
       return console.error('No arguments')
     }
 
-    const ARG_NO_PREF = arg.slice(2)
+    const ARG_NO_PREF = arg[0].slice(2)
+
+    if (arg.length > 1) {
+      return console.error('Please provide exactly one argument')
+    }
 
     switch (ARG_NO_PREF.toLowerCase()) {
       case 'eol':
