@@ -15,19 +15,27 @@ class Zip {
     //  archive_path += '.gz'
     //}
 
-    return pipeline(
-      createReadStream(join(cwd(), file_path), { encoding: 'utf-8' }),
-      createBrotliCompress(),
-      createWriteStream(join(cwd(), archive_path), { encoding: 'utf-8' }),
-    )
+    try {
+      return pipeline(
+        createReadStream(join(cwd(), file_path), { encoding: 'utf-8' }),
+        createBrotliCompress(),
+        createWriteStream(join(cwd(), archive_path), { encoding: 'utf-8' }),
+      )
+    } catch (err) {
+      throw err
+    }
   }
 
   async decompress(archive_path, file_path) {
-    return pipeline(
-      createReadStream(join(cwd(), archive_path)),
-      createBrotliDecompress(),
-      createWriteStream(join(cwd(), file_path)),
-    )
+    try {
+      return pipeline(
+        createReadStream(join(cwd(), archive_path)),
+        createBrotliDecompress(),
+        createWriteStream(join(cwd(), file_path)),
+      )
+    } catch (err) {
+      throw err
+    }
   }
 }
 

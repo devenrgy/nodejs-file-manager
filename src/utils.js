@@ -4,4 +4,6 @@ const formatTime = (number) => (number < 10 ? '0' + number : number)
 
 const toBool = [() => true, () => false]
 
-export { isFunction, formatTime, toBool }
+const handleErrors = [console.log, (err) => console.error(err.message)]
+
+export { isFunction, formatTime, toBool, handleErrors }

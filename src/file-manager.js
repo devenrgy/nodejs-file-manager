@@ -9,7 +9,7 @@ import { Zip } from './zip/index.js'
 import { Hash } from './hash/index.js'
 
 import { MAN_OS, MAN_COMMANDS } from '#mans'
-import { isFunction } from '#utils'
+import { isFunction, handleErrors } from '#utils'
 import { CMD_EXIT, CMD_CREATE, CMD_RENAME, CMD_HELP, CMD_UP } from '#constants'
 import { LOGO } from '#logo'
 
@@ -115,61 +115,44 @@ class FileManager {
     )
   }
 
-  async ls(dir) {
-    try {
-      console.table(await this._nav.ls(dir ?? cwd(), 'asc'))
-    } catch (err) {
-      console.error(err.message)
-    }
+  async ls(...dir) {
+    return this._nav.ls(dir.join(' ') || cwd())
   }
 
-  async cp(oldDir, newDir) {
-    try {
-      await this._fs.cp(oldDir, newDir)
-      console.log('Copying successfully completed')
-    } catch (err) {
-      console.error(err.message)
-    }
+  async cp(old_dir, new_dir) {
+    return this._fs.cp(old_dir, new_dir).then(...handleErrors)
   }
 
-  async mv(oldDir, newDir) {
-    try {
-      await this._fs.mv(oldDir, newDir)
-    } catch (err) {
-      console.error(err.message)
-    }
+  async mv(old_dir, new_dir) {
+    return this._fs.mv(old_dir, new_dir).then(...handleErrors)
   }
 
-  async rm(file_path) {
-    try {
-      await this._fs.rm(file_path)
-    } catch (err) {
-      console.error(err.message)
-    }
+  async rm(...file_path) {
+    return this._fs.rm(file_path.join(' ')).then(...handleErrors)
   }
 
-  cd(dir) {
-    try {
-      this._nav.cd(dir || this._os.homedir)
-    } catch (err) {
-      console.error(err.message)
-    }
+  async cd(...dir) {
+    return this._nav.cd(dir.join(' ') || this._os.homedir).then(...handleErrors)
   }
 
-  async touch(file_path, ...content) {
-    try {
-      await this._fs.touch(file_path, content.join(' ').trim())
-    } catch (err) {
-      console.error(err.message)
-    }
+  async touch(...file_path) {
+    return this._fs.touch(file_path.join(' ')).then(...handleErrors)
   }
 
-  async cat(file_path) {
-    try {
-      console.log(await this._fs.cat(file_path))
-    } catch (err) {
-      console.error(err.message)
-    }
+  async cat(...file_path) {
+    return this._fs.cat(file_path.join(' ')).then(...handleErrors)
+  }
+
+  async hash(...file_path) {
+    return this._hash.calculateHash(file_path.join(' ')).then(...handleErrors)
+  }
+
+  async compress(file_path, archive_path) {
+    return this._zip.compress(file_path, archive_path).then(...handleErrors)
+  }
+
+  async decompress(archive_path, file_path) {
+    return this._zip.decompress(archive_path, file_path).then(...handleErrors)
   }
 
   pwd() {
@@ -178,42 +161,6 @@ class FileManager {
 
   clear() {
     console.clear()
-  }
-
-  help(cmd) {
-    switch (cmd) {
-      case 'os':
-        console.table(MAN_OS)
-        break
-      default:
-        console.table(MAN_COMMANDS)
-    }
-  }
-
-  async hash(file_path) {
-    try {
-      console.log(await this._hash.calculateHash(file_path))
-    } catch (err) {
-      console.error(err.message)
-    }
-  }
-
-  async compress(file_path, archive_path) {
-    try {
-      await this._zip.compress(file_path, archive_path)
-      console.log('The compression was successful!')
-    } catch (err) {
-      console.error(err.message)
-    }
-  }
-
-  async decompress(archive_path, file_path) {
-    try {
-      await this._zip.decompress(archive_path, file_path)
-      console.log('The decompression was successful!')
-    } catch (err) {
-      console.error(err.message)
-    }
   }
 
   //TODO: ADD MULTI RUN COMMAND
@@ -238,6 +185,16 @@ class FileManager {
         return console.log(this._os.architecture)
       default:
         return console.error('Invalid argument')
+    }
+  }
+
+  help(cmd) {
+    switch (cmd) {
+      case 'os':
+        console.table(MAN_OS)
+        break
+      default:
+        console.table(MAN_COMMANDS)
     }
   }
 

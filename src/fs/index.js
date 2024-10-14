@@ -1,67 +1,109 @@
 import { cp, rm, access, mkdir, constants } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { cwd } from 'node:process'
-import { join, dirname } from 'node:path'
+import { join, dirname, isAbsolute } from 'node:path'
 import { toBool } from '#utils'
 
 class FS {
-  async isExists(path) {
-    return access(join(cwd(), path), constants.F_OK).then(...toBool)
-  }
-
-  async mkdir(dir) {
-    if (!(await this.isExists(dirname(dir)))) {
-      await mkdir(join(cwd(), dirname(dir)))
+  resolvePath(path, to) {
+    switch (to) {
+      case 'dir':
+        return dirname(path)
+      default:
+        return isAbsolute(path) ? path : join(cwd(), path)
     }
   }
 
-  async cp(oldDir, newDir) {
-    await this.mkdir(newDir)
+  async isExists(path) {
+    return access(path, constants.F_OK).then(...toBool)
+  }
 
-    return new Promise((res, rej) => {
-      const readStream = createReadStream(join(cwd(), oldDir), { encoding: 'utf-8' })
-      const writeStream = createWriteStream(join(cwd(), newDir), { encoding: 'utf-8' })
-      readStream.pipe(writeStream)
+  async mkdir(path) {
+    try {
+      return mkdir(this.resolvePath(path, 'dir'))
+    } catch (err) {
+      throw err
+    }
+  }
 
-      readStream.on('error', (err) => rej(err))
-      writeStream.on('error', (err) => rej(err))
+  async cp(old_dir, new_dir) {
+    try {
+      const isExistDir = await this.isExists(this.resolvePath(new_dir, 'dir'))
 
-      writeStream.on('close', () => res())
-    })
+      if (!isExistDir) {
+        await this.mkdir(new_dir)
+      }
+
+      return new Promise((res, rej) => {
+        const readStream = createReadStream(this.resolvePath(old_dir), { encoding: 'utf-8' })
+        const writeStream = createWriteStream(this.resolvePath(new_dir), { encoding: 'utf-8' })
+        readStream.pipe(writeStream)
+
+        readStream.on('error', (err) => rej(err))
+        writeStream.on('error', (err) => rej(err))
+
+        writeStream.on('close', () => res('Copy completed successfully!'))
+      })
+    } catch (err) {
+      throw new Error('Invalid arguments provided')
+    }
   }
 
   async rm(file_path) {
-    return rm(file_path, { recursive: true, force: true })
+    try {
+      await rm(file_path, { recursive: true })
+    } catch (err) {
+      throw err
+    }
   }
 
-  async mv(oldDir, newDir) {
-    await this.cp(oldDir, newDir)
-    return this.rm(oldDir)
+  async mv(old_dir, new_dir) {
+    try {
+      await Promise.all([this.cp(old_dir, new_dir), this.rm(old_dir)])
+      return 'Move completed successfully!'
+    } catch (err) {
+      throw err
+    }
   }
 
-  async touch(file_path, content = '') {
-    await this.mkdir(file_path)
+  async touch(file_path) {
+    try {
+      const isExistDir = await this.isExists(this.resolvePath(file_path, 'dir'))
 
-    return new Promise((res, rej) => {
-      const writeStream = createWriteStream(join(cwd(), file_path), { encoding: 'utf-8', flags: 'wx' })
+      if (!isExistDir) {
+        await this.mkdir(file_path)
+      }
 
-      writeStream.write(content, (err) => (err ? rej(err) : res()))
+      return new Promise((res, rej) => {
+        const writeStream = createWriteStream(this.resolvePath(file_path), {
+          encoding: 'utf-8',
+          flags: 'wx',
+        })
 
-      writeStream.on('error', (err) => rej(err))
-    })
+        writeStream.write('', (err) => (err ? rej(err) : res('File created successfully!')))
+
+        writeStream.on('error', (err) => rej(err))
+      })
+    } catch (err) {
+      throw err
+    }
   }
 
   async cat(file_path) {
-    return new Promise((res, rej) => {
-      const readStream = createReadStream(join(cwd(), file_path), { encoding: 'utf-8' })
-      let data = ''
+    try {
+      return new Promise((res, rej) => {
+        const readStream = createReadStream(this.resolvePath(file_path), { encoding: 'utf-8' })
+        let data = ''
 
-      readStream.on('data', (chunk) => (data += chunk))
+        readStream.on('data', (chunk) => (data += chunk))
 
-      readStream.on('end', () => res(data))
+        readStream.on('end', () => res(data))
 
-      readStream.on('error', (err) => rej(err))
-    })
+        readStream.on('error', (err) => rej(err))
+      })
+    } catch (err) {
+      throw err
+    }
   }
 }
 
