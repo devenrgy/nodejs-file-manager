@@ -2,7 +2,7 @@ import { cp, rm, access, mkdir, constants } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { cwd } from 'node:process'
 import { join, dirname, isAbsolute } from 'node:path'
-import { toBool } from '#utils/helpers.js'
+import { toBool, checkRequiredArgs } from '#utils/helpers.js'
 
 class Fs {
   resolvePath(path, to) {
@@ -28,9 +28,7 @@ class Fs {
 
   async cp(old_dir, new_dir) {
     try {
-      if (!old_dir || !new_dir) {
-        throw new Error('Invalid arguments provided!')
-      }
+      checkRequiredArgs(old_dir, new_dir)
 
       const isExistDir = await this.isExists(this.resolvePath(new_dir, 'dir'))
 
@@ -55,9 +53,7 @@ class Fs {
 
   async rm(file_path) {
     try {
-      if (!file_path) {
-        throw new Error('Invalid argument!')
-      }
+      checkRequiredArgs(file_path)
 
       await rm(file_path, { recursive: true })
       return 'Deletion completed successfully!'
@@ -68,9 +64,7 @@ class Fs {
 
   async mv(old_dir, new_dir) {
     try {
-      if (!old_dir || !new_dir) {
-        throw new Error('Invalid arguments provided!')
-      }
+      checkRequiredArgs(old_dir, new_dir)
 
       await Promise.all([this.cp(old_dir, new_dir), this.rm(old_dir)])
       return 'Move completed successfully!'
@@ -81,9 +75,7 @@ class Fs {
 
   async touch(file_path) {
     try {
-      if (!file_path) {
-        throw new Error('Invalid argument!')
-      }
+      checkRequiredArgs(file_path)
 
       const isExistDir = await this.isExists(this.resolvePath(file_path, 'dir'))
 
@@ -108,9 +100,7 @@ class Fs {
 
   async cat(file_path) {
     try {
-      if (!file_path) {
-        throw new Error('Invalid argument!')
-      }
+      checkRequiredArgs(file_path)
 
       return new Promise((res, rej) => {
         const readStream = createReadStream(this.resolvePath(file_path), { encoding: 'utf-8' })

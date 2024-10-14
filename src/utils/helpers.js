@@ -6,6 +6,22 @@ const toBool = [() => true, () => false]
 
 const handleErrors = [console.log, (err) => console.error(err.message)]
 
+const checkRequiredArgs = (...args) => {
+  if (args.length === 2) {
+    const [arg1, arg2] = args
+    if (!arg1 || !arg2) {
+      throw new Error('Invalid arguments provided!')
+    }
+  }
+
+  if (args.length === 1) {
+    const [arg1] = args
+    if (!arg1) {
+      throw new Error('Invalid argument!')
+    }
+  }
+}
+
 const splitWithQuotes = async (paths) => {
   return new Promise((res) => {
     const matches = paths.join(' ').match(/(['"])(.*?)\1|\S+/g)
@@ -24,4 +40,4 @@ const splitWithQuotes = async (paths) => {
   })
 }
 
-export { isFunction, formatTime, toBool, handleErrors, splitWithQuotes }
+export { isFunction, checkRequiredArgs, formatTime, toBool, handleErrors, splitWithQuotes }

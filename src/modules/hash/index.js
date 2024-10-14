@@ -1,12 +1,11 @@
 import { createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { checkRequiredArgs } from '#utils/helpers.js'
 
 class Hash {
   async calculateHash(file_path) {
     try {
-      if (!file_path) {
-        throw new Error('Invalid arguments provided!')
-      }
+      checkRequiredArgs(file_path)
 
       return new Promise((res, rej) => {
         const readStream = createReadStream(file_path, { encoding: 'utf-8' })
