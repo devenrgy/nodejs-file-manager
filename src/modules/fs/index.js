@@ -28,6 +28,10 @@ class Fs {
 
   async cp(old_dir, new_dir) {
     try {
+      if (!old_dir || !new_dir) {
+        throw new Error('Invalid arguments provided!')
+      }
+
       const isExistDir = await this.isExists(this.resolvePath(new_dir, 'dir'))
 
       if (!isExistDir) {
@@ -45,13 +49,18 @@ class Fs {
         writeStream.on('close', () => res('Copy completed successfully!'))
       })
     } catch (err) {
-      throw new Error('Invalid arguments provided')
+      throw err
     }
   }
 
   async rm(file_path) {
     try {
+      if (!file_path) {
+        throw new Error('Invalid argument!')
+      }
+
       await rm(file_path, { recursive: true })
+      return 'Deletion completed successfully!'
     } catch (err) {
       throw err
     }
@@ -59,6 +68,10 @@ class Fs {
 
   async mv(old_dir, new_dir) {
     try {
+      if (!old_dir || !new_dir) {
+        throw new Error('Invalid arguments provided!')
+      }
+
       await Promise.all([this.cp(old_dir, new_dir), this.rm(old_dir)])
       return 'Move completed successfully!'
     } catch (err) {
@@ -68,6 +81,10 @@ class Fs {
 
   async touch(file_path) {
     try {
+      if (!file_path) {
+        throw new Error('Invalid argument!')
+      }
+
       const isExistDir = await this.isExists(this.resolvePath(file_path, 'dir'))
 
       if (!isExistDir) {
@@ -91,6 +108,10 @@ class Fs {
 
   async cat(file_path) {
     try {
+      if (!file_path) {
+        throw new Error('Invalid argument!')
+      }
+
       return new Promise((res, rej) => {
         const readStream = createReadStream(this.resolvePath(file_path), { encoding: 'utf-8' })
         let data = ''

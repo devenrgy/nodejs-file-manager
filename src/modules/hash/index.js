@@ -4,6 +4,10 @@ import { createHash } from 'node:crypto'
 class Hash {
   async calculateHash(file_path) {
     try {
+      if (!file_path) {
+        throw new Error('Invalid arguments provided!')
+      }
+
       return new Promise((res, rej) => {
         const readStream = createReadStream(file_path, { encoding: 'utf-8' })
         const hash = createHash('sha256')

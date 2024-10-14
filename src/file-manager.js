@@ -1,9 +1,9 @@
 import { createInterface } from 'node:readline/promises'
-import { stdin, stdout, cwd, exit } from 'node:process'
+import { stdin, chdir, stdout, cwd, exit } from 'node:process'
 
 import { Os, Cli, Fs, Nav, Zip, Hash } from '#modules'
 import { MAN_OS, MAN_COMMANDS } from '#mans'
-import { isFunction, handleErrors } from '#utils/helpers.js'
+import { isFunction, handleErrors, splitWithQuotes } from '#utils/helpers.js'
 import { CMD_EXIT, CMD_CREATE, CMD_RENAME, CMD_HELP, CMD_UP } from '#utils/constants.js'
 import { LOGO } from '#utils/logo.js'
 
@@ -14,7 +14,6 @@ class FileManager {
   _hash = new Hash()
   _nav = new Nav()
   _zip = new Zip()
-  // err = new CustomError()
 
   _setupInputListener() {
     this.rl = createInterface({
@@ -37,7 +36,7 @@ class FileManager {
       }
 
       if (CMD_UP.includes(cmd)) {
-        this.cd('..')
+        chdir('..')
         return this._setPrompt()
       }
 
@@ -94,8 +93,7 @@ class FileManager {
     this._welcome()
     this._setupInputListener()
 
-    //TODO:
-    //this.cd()
+    chdir(this._os.homedir)
     this._setPrompt()
   }
 
@@ -105,46 +103,71 @@ class FileManager {
     console.log(
       'You can also use the help command in conjunction with other commands. For example: "help os" will display the available arguments.',
     )
+    console.log(
+      'If your file or directory paths contain spaces, you must wrap them in either single (\') or double (") quotes for the command to work correctly.',
+    )
+    console.log("Example 1: cd 'my folder'")
+    console.log('Example 2: cp "my folder/file.txt" "another folder/file.txt"')
   }
 
-  async ls(...dir) {
-    return this._nav.ls(dir.join(' ') || cwd())
+  async ls(...paths) {
+    return splitWithQuotes(paths)
+      .then(([dir]) => this._nav.ls(dir ?? cwd()))
+      .then(...handleErrors)
   }
 
-  async cp(old_dir, new_dir) {
-    return this._fs.cp(old_dir, new_dir).then(...handleErrors)
+  async cp(...paths) {
+    return splitWithQuotes(paths)
+      .then(([old_dir, new_dir]) => this._fs.cp(old_dir, new_dir))
+      .then(...handleErrors)
   }
 
-  async mv(old_dir, new_dir) {
-    return this._fs.mv(old_dir, new_dir).then(...handleErrors)
+  async mv(...paths) {
+    return splitWithQuotes(paths)
+      .then(([old_dir, new_dir]) => this._fs.mv(old_dir, new_dir))
+      .then(...handleErrors)
   }
 
-  async rm(...file_path) {
-    return this._fs.rm(file_path.join(' ')).then(...handleErrors)
+  async rm(...paths) {
+    return splitWithQuotes(paths)
+      .then(([dir]) => this._fs.rm(dir))
+      .then(...handleErrors)
   }
 
-  async cd(...dir) {
-    return this._nav.cd(dir.join(' ') || this._os.homedir).then(...handleErrors)
+  async cd(...paths) {
+    return splitWithQuotes(paths)
+      .then(([dir]) => this._nav.cd(dir ?? this._os.homedir))
+      .then(...handleErrors)
   }
 
-  async touch(...file_path) {
-    return this._fs.touch(file_path.join(' ')).then(...handleErrors)
+  async touch(...paths) {
+    return splitWithQuotes(paths)
+      .then(([dir]) => this._fs.touch(dir))
+      .then(...handleErrors)
   }
 
-  async cat(...file_path) {
-    return this._fs.cat(file_path.join(' ')).then(...handleErrors)
+  async cat(...paths) {
+    return splitWithQuotes(paths)
+      .then(([dir]) => this._fs.cat(dir))
+      .then(...handleErrors)
   }
 
-  async hash(...file_path) {
-    return this._hash.calculateHash(file_path.join(' ')).then(...handleErrors)
+  async hash(...paths) {
+    return splitWithQuotes(paths)
+      .then(([dir]) => this._hash.calculateHash(dir))
+      .then(...handleErrors)
   }
 
-  async compress(file_path, archive_path) {
-    return this._zip.compress(file_path, archive_path).then(...handleErrors)
+  async compress(...paths) {
+    return splitWithQuotes(paths)
+      .then(([file_path, archive_path]) => this._zip.compress(file_path, archive_path))
+      .then(...handleErrors)
   }
 
-  async decompress(archive_path, file_path) {
-    return this._zip.decompress(archive_path, file_path).then(...handleErrors)
+  async decompress(...paths) {
+    return splitWithQuotes(paths)
+      .then(([archive_path, file_path]) => this._zip.decompress(archive_path, file_path))
+      .then(...handleErrors)
   }
 
   pwd() {
@@ -179,7 +202,7 @@ class FileManager {
       case 'architecture':
         return console.log(this._os.architecture)
       default:
-        return console.error('Invalid argument')
+        return console.error('Invalid argument!')
     }
   }
 

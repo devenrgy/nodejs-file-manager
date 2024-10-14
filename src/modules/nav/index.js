@@ -14,8 +14,9 @@ class Nav {
         .sort((a, b) => (a.Type === b.Type ? a.Name.localeCompare(b.Name) : a.Type.localeCompare(b.Type)))
 
       console.table(sortList)
+      return `Total: ${sortList.length}`
     } catch (err) {
-      console.error(err.message)
+      throw new Error('Operation failed!')
     }
   }
 
@@ -23,9 +24,9 @@ class Nav {
     return new Promise((res, rej) => {
       try {
         chdir(dir)
-        res('')
+        res(`Directory changed to ${dir} successfully!`)
       } catch (err) {
-        rej(err)
+        throw new Error('Operation failed!')
       }
     })
   }
