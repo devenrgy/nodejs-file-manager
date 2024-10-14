@@ -1,4 +1,4 @@
-import { cp, rm, access, mkdir, constants } from 'node:fs/promises'
+import { rm, access, mkdir, constants } from 'node:fs/promises'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { cwd } from 'node:process'
 import { join, dirname, isAbsolute } from 'node:path'
