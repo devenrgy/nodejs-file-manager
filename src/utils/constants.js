@@ -1,11 +1,8 @@
-const CMD_HELP = ['-h', '--help']
+export const SUPPORTED_ALGORITHMS = ["sha256", "md5", "sha512"];
 
-const CMD_EXIT = ['.q', '.quit', '.exit']
-
-const CMD_UP = ['..', 'up']
-
-const CMD_RENAME = ['rn']
-
-const CMD_CREATE = ['add']
-
-export { CMD_UP, CMD_CREATE, CMD_EXIT, CMD_RENAME, CMD_HELP }
+export const ALGORITHM = "aes-256-gcm";
+export const KEY_LENGTH = 32;
+export const IV_LENGTH = 12;
+export const SALT_LENGTH = 16;
+export const AUTH_TAG_LENGTH = 16;
+export const HEADER_LENGTH = SALT_LENGTH + IV_LENGTH;
